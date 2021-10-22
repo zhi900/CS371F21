@@ -2,7 +2,10 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 public class MyMemoryAllocation extends MemoryAllocation {
-    String algorithm; //best fit, first fit or next fit
+    String algorithm; 
+    String BF;  // best fit
+    String FF;  // first fit
+    String NF;  //  next fit
     MyLinkedList free_list;
     MyLinkedList used_list;
 
@@ -65,8 +68,11 @@ class MyLinkedList implements Iterable {
         
     }
 }
-// Sort-by in Java: (needs a class)
-// You may need it to sort your list or you can maintain a sorted list upon insertion
+// Sorts the list
+public void sortList(){
+    
+}
+
 class ByOffset implements Comparator<Block> {
     @Override int compare(Block lhs, Block rhs) {
         return Integer.compare(lhs.offset, rhs.offset);
