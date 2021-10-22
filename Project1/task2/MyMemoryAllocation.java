@@ -1,7 +1,6 @@
 import java.util.Comparator;
 import java.util.Iterator;
 
-// I would like a simulation class to do most of the work.
 public class MyMemoryAllocation extends MemoryAllocation {
     String algorithm; //best fit, first fit or next fit
     MyLinkedList free_list;
@@ -11,7 +10,7 @@ public class MyMemoryAllocation extends MemoryAllocation {
         super(mem_size, algorithm);
     }
 
-    // Strongly recommend you start with printing out the pieces.
+    
     public void print() {
 
     }
@@ -35,12 +34,12 @@ public class MyMemoryAllocation extends MemoryAllocation {
     }
 
 }
-// Probably a block class with at least these fields and methods.
+
 class Block {
     int offset;
     int size;
 
-    public String toString() // highly recommended
+    public String toString() 
     {
         
     }
@@ -49,9 +48,8 @@ class Block {
         
     }
 }
-// Probably a block class with at least these fields and methods.
-class MyLinkedList implements Iterable { //generic types are not required, you can just do MyLinkedList for blocks but Iterable is mandatory.
-    //in addition to other regular list member functions such as insert and delete: (split and consolidate blocks must be implemented at the level of linked list)
+class MyLinkedList implements Iterable { 
+    
     public void splitMayDelete() {
 
     }
@@ -60,7 +58,7 @@ class MyLinkedList implements Iterable { //generic types are not required, you c
     }
     public String toString() {
 
-    } //highly recommended
+    } /
 
     @Override
     public Iterator iterator() {
