@@ -15,14 +15,12 @@ public class MyMemoryAllocation extends MyLinkedList {
         algo = algorithm;
 
 
-        size();
-        alloc(1);
-        alloc(5);
+        
         if(freeList.size()!=0) System.out.println(freeList.head.getData());
         if(usedList.size()!=0)System.out.println(usedList.head.getData());
         System.out.println(freeList.size());
 
-        print();
+        
     }
 
 
