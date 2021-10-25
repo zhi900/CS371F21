@@ -110,7 +110,7 @@ public class MyMemoryAllocation extends MyLinkedList {
                 }
             }
             else{
-                count = 0;
+                count = 1;
             }
         }
         return maxCount;
