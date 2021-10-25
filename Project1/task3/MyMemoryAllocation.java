@@ -16,11 +16,9 @@ public class MyMemoryAllocation extends MyLinkedList {
 
         initiate();
 
-        if(freeList.size()!=0) System.out.println(freeList.head.getData());
-        if(usedList.size()!=0)System.out.println(usedList.head.getData());
-        System.out.println(freeList.size());
+        
 
-        print();
+        
     }
 
     public void initiate(){
@@ -39,10 +37,7 @@ public class MyMemoryAllocation extends MyLinkedList {
 
 
 
-    public void print() {
-        if(freeList.size()!=0)  System.out.println("free list " + freeList.toString());
-        if(usedList.size()!=0)  System.out.println("used list " + usedList.toString());
-    }
+   
 
     public int alloc(int size) {
 
