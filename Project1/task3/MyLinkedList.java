@@ -5,36 +5,30 @@ public class MyLinkedList implements Iterable { //generic types are not required
     //in addition to other regular list member functions such as insert and delete: (split and consolidate blocks must be implemented at the level of linked list)
     public class Node {
 
-        public int data;
+        public int offset;                                  //changed data to offset
         public int size;
         public Node next;
 
 
-        public Node(int data, int size) {
-            this.data = data;
-            this.size = size;
-            next = null;
+        public Node(int offset, int size, Node next) {      //added Node next as this will add next
+            this.offset = offset;                           //changed data to offset
+            this.size = size;                               
+            this.next = next;                               
         }
-
-        public int getData() {
-            return data;
-        }
-        public void setNext(Node n) {
-            next = n;
-        }
-        public Node getNext() {
-            return next;
-        }
-
     }
-
-    public Node head;
-
-    public void insert(int data, int size){
+       
+    public Node head = null;                                //added head node decloration
+    
+    public MyLinkedList(Node head) {
+        this.head = head;
+    }
+    
+    //add the sort here or have the list sorted on insertion
+    public void insert(int offset, int size){
         if(head == null){
-            head = new Node(data, size);
+            head = new Node(offset, size);
         } else {
-            Node newNode = new Node(data, size);
+            Node newNode = new Node(offset, size);
             newNode.setNext(head);
             head = newNode;
         }
@@ -43,11 +37,11 @@ public class MyLinkedList implements Iterable { //generic types are not required
         String result = "";
         Node current = head;
         while(current.getNext() != null){
-            result += current.getData();
-            if(current.getNext() != null){
+            result += current.offset + "-" + current.size;
+            if(current.next != null){
                 result += ", ";
             }
-            current = current.getNext();
+            current = current.next;
         }
         result += current.getData();
         return "Contents of the List: " + result;
@@ -76,41 +70,39 @@ public class MyLinkedList implements Iterable { //generic types are not required
     }
 
 
-    void deleteNode(int position)
+    void deleteNode(int position)                           //modified deleteNode method
     {
         // If linked list is empty
         if (head == null)
             return;
 
-        // Store head node
+        //memory offset can't be 0
+        if (offset <= 0) {
+            System.err.println("Invalid memory offset: " + offset);
+            return;
+        }
+        
+        //Store head node
         Node temp = head;
-
-        // If head needs to be removed
-        if (position == 0)
-        {
-            head = temp.next;   // Change head
+        
+        if (offset == 1) {                                  //changes head
+            head = temp.next;
             return;
         }
 
-        // Find previous node of the node to be deleted
-        for (int i=0; temp!=null && i<position-1; i++)
-            temp = temp.next;
-
-        // If position is more than number of nodes
-        if (temp == null || temp.next == null)
-            return;
-
-        // Node temp->next is the node to be deleted
-        // Store pointer to the next of node to be deleted
-        Node next = temp.next.next;
-
+       while (temp != null) {                               //will go throught the list, find temp node where the temp.next.offset==offset 
+           if (temp.next.offset == offset) {                //then chage the parent node to the next next node
+               temp.next = temp.next.next;
+           }
         temp.next = next;  // Unlink the deleted node from list
+        }
+        System.out.println("Invalid deleteNode did not find node with offset: " + offset);
     }
 
-
-
-
-
+    //return total amount in this list, sum of all size
+    public int size(){
+    }
+    
     @Override
     public Iterator iterator() {
         return null;
