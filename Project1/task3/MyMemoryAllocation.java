@@ -34,14 +34,7 @@ public class MyMemoryAllocation extends MyLinkedList {
 
 
 
-    public static void main(String[] args)
-    {
-        MyMemoryAllocation mal = new MyMemoryAllocation(14, "FF");
-
-
-
-
-    }
+   
 
 
 
