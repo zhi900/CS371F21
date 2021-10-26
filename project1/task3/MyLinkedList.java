@@ -79,6 +79,19 @@ public class MyLinkedList implements Iterable { //generic types are not required
         this.insert(offset, size);
         mergeAdjacent();
     }
+    public void setnextHead(){
+        head = head.next;
+    }
+    public Node get(int i) {
+
+        Node u = head;
+        for(int j = 0; j < i; j++){
+            u = u.next;
+        }
+        return u;
+
+
+    }
     public void mergeAdjacent() {
         boolean merged = false;
         Node temp = head;
@@ -141,6 +154,17 @@ public class MyLinkedList implements Iterable { //generic types are not required
             temp = temp.next;
         }
         return total;
+    }
+    public int listSize()
+    {
+        Node temp = head;
+        int count = 0;
+        while (temp != null)
+        {
+            count++;
+            temp = temp.next;
+        }
+        return count;
     }
 
 
