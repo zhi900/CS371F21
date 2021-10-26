@@ -41,7 +41,39 @@ public class MyMemoryAllocation extends MemoryAllocation  {
                 }
                 potentialFreeNode = potentialFreeNode.next;
             }
-        } else {
+        } 
+        else if(algorithm.equals("BF")) {
+            MyLinkedList.Node potentialFreeNode = freeList.head;
+            while (potentialFreeNode != null) {
+                if (potentialFreeNode.size >= size && (freeNode == null || potentialFreeNode.size < freeNode.size )) {
+                    freeNode = potentialFreeNode;
+                }
+                potentialFreeNode = potentialFreeNode.next;
+            }
+        }
+        else if(algorithm.equals("NF")) {
+            MyLinkedList.Node potentialFreeNode = freeList.head;
+            while (potentialFreeNode != null) {
+                if (potentialFreeNode.size >= size && potentialFreeNode.offset >= freeList.lastAlloced) {
+                    freeNode = potentialFreeNode;
+                    freeList.lastAlloced = potentialFreeNode.offset;
+                    break;
+                }
+                potentialFreeNode = potentialFreeNode.next;
+            }
+            if (freeNode == null) {
+                potentialFreeNode = freeList.head;
+                while (potentialFreeNode != null) {
+                    if (potentialFreeNode.size >= size) {
+                        freeNode = potentialFreeNode;
+                        freeList.lastAlloced = potentialFreeNode.offset;
+                        break;
+                    }
+                    potentialFreeNode = potentialFreeNode.next;
+                }
+            }
+        }
+        else {
             System.err.println("Other algorithms not implemented.");
             return 0;
         }
