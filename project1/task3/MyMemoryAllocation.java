@@ -9,20 +9,29 @@ public class MyMemoryAllocation extends MemoryAllocation  {
     MyLinkedList usedList = new MyLinkedList();
     int memSize = 0;
     String algo;
-    
-    
+    int index = 0;
+    int addr= 0;
     public MyMemoryAllocation(int mem_size, String algorithm) {
-    	super(mem_size, algorithm);
-    	memSize = mem_size -1;
+        super(mem_size, algorithm);
+        memSize = mem_size -1;
         this.algorithm = algorithm;
         freeList.insert(1, memSize);
         System.out.println("Size: " + this.size());
+
+
+
+
+
+        System.out.println(index);
+        System.out.println(freeList.listSize());
+
+        print();
     }
 
     public static void main(String[] args)
     {
-       MyMemoryAllocation mal = new MyMemoryAllocation(14, "FF");
-	}
+        MyMemoryAllocation mal = new MyMemoryAllocation(14, "NF");
+    }
 
     // Strongly recommend you start with printing out the pieces.
     public void print() {
@@ -31,7 +40,8 @@ public class MyMemoryAllocation extends MemoryAllocation  {
     }
 
     public int alloc(int size) {
-    	MyLinkedList.Node freeNode = null;
+
+        MyLinkedList.Node freeNode = null;
         if (algorithm.equals("FF")) {
             MyLinkedList.Node potentialFreeNode = freeList.head;
             while (potentialFreeNode != null) {
@@ -41,7 +51,7 @@ public class MyMemoryAllocation extends MemoryAllocation  {
                 }
                 potentialFreeNode = potentialFreeNode.next;
             }
-        } 
+        }
         else if(algorithm.equals("BF")) {
             MyLinkedList.Node potentialFreeNode = freeList.head;
             while (potentialFreeNode != null) {
@@ -52,37 +62,57 @@ public class MyMemoryAllocation extends MemoryAllocation  {
             }
         }
         else if(algorithm.equals("NF")) {
-            MyLinkedList.Node potentialFreeNode = freeList.head;
-            while (potentialFreeNode != null) {
+
+
+            MyLinkedList.Node potentialFreeNode = freeList.get(index);
+
+            while (potentialFreeNode != null ) {
+
                 if (potentialFreeNode.size >= size && potentialFreeNode.offset >= freeList.lastAlloced) {
                     freeNode = potentialFreeNode;
                     freeList.lastAlloced = potentialFreeNode.offset;
+
+                    index++;
+
                     break;
                 }
+                else{
+                    index++;
+                }
+
                 potentialFreeNode = potentialFreeNode.next;
+
+
+
             }
+            if(index >= freeList.listSize()){
+                index = 0;
+            }
+
             if (freeNode == null) {
-                potentialFreeNode = freeList.head;
+                potentialFreeNode = freeList.get(index);
                 while (potentialFreeNode != null) {
                     if (potentialFreeNode.size >= size) {
                         freeNode = potentialFreeNode;
                         freeList.lastAlloced = potentialFreeNode.offset;
+                        index++;
                         break;
                     }
                     potentialFreeNode = potentialFreeNode.next;
                 }
             }
+
         }
         else {
             System.err.println("Other algorithms not implemented.");
             return 0;
         }
-        
+
         if (freeNode == null) {
             System.err.println("Free node big enough not found for size " + size);
             return 0;
         }
-        
+
         usedList.insert(freeNode.offset, size);
         int returnvalue = freeNode.offset;
         freeList.splitMayDelete(freeNode, size);
@@ -91,6 +121,7 @@ public class MyMemoryAllocation extends MemoryAllocation  {
     }
 
     public void free(int address) {
+        addr = address;
         // call deleteNode(address) on usedList
         MyLinkedList.Node deleted = usedList.deleteNode(address);
 
@@ -98,6 +129,11 @@ public class MyMemoryAllocation extends MemoryAllocation  {
             System.err.println("Address wasn't freeable");
             return;
         }
+        if(address == freeList.lastAlloced){
+            freeList.lastAlloced = freeList.head.offset;
+        }
+
+
         // then call insertMayCompact on freelist
         freeList.insertMayCompact(deleted.offset, deleted.size);
     }
@@ -122,5 +158,3 @@ public class MyMemoryAllocation extends MemoryAllocation  {
 }
 
 
-// Sort-by in Java: (needs a class)
-// You may need it to sort your list or you can maintain a sorted list upon insertion
