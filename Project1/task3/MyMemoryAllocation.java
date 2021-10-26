@@ -2,113 +2,80 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-
-public class MyMemoryAllocation extends MyLinkedList {
-    String algorithm;
+// I would like a simulation class to do most of the work.
+public class MyMemoryAllocation extends MemoryAllocation  {
+    String algorithm; //best fit, first fit or next fit
     MyLinkedList freeList = new MyLinkedList();
     MyLinkedList usedList = new MyLinkedList();
     int memSize = 0;
     String algo;
-    int lastNode = 0;
+    
+    
     public MyMemoryAllocation(int mem_size, String algorithm) {
-        memSize = mem_size;
-        algo = algorithm;
-
-        initiate();
-
-        
-
-        
+    	super(mem_size, algorithm);
+    	memSize = mem_size;
+        this.algorithm = algorithm;
+        freeList.insert(1, memSize);
+        System.out.println("Size: " + this.size());
     }
 
-    public void initiate(){
-        for (int i =memSize-1;i>0;i--) {
-            freeList.insert(i);
-
-        }
-        freeList.sortList();
-        lastNode = freeList.get(memSize-2);
+    public static void main(String[] args)
+    {
+        MyMemoryAllocation mal = new MyMemoryAllocation(14, "ff");
     }
 
-
-
-   
-
-
-
-
-   
+    // Strongly recommend you start with printing out the pieces.
+    public void print() {
+        if(freeList.size()!=0)  System.out.println(freeList.toString());
+        if(usedList.size()!=0)  System.out.println(usedList.toString());
+    }
 
     public int alloc(int size) {
-
-            int data = freeList.head.data;
-            usedList.insert(freeList.head.data);
-            usedList.sortList();
-            for (int i = 0; i < size; i++) {
-
-
-                freeList.setnextHead();
+    	MyLinkedList.Node freeNode = null;
+        if (algorithm.equals("FF")) {
+            MyLinkedList.Node potentialFreeNode = freeList.head;
+            while (potentialFreeNode != null) {
+                if (potentialFreeNode.size >= size) {
+                    freeNode = potentialFreeNode;
+                    break;
+                }
             }
-        if(freeList.size() == 0){
-            data = 0;
+        } else {
+            System.err.println("Other algorithms not implemented.");
+            return 0;
         }
+        
+        if (freeNode == null) {
+            System.err.println("Free node big enough not found for size " + size);
+            return 0;
+        }
+        
+        usedList.insert(freeNode.offset, size);
+        freeList.splitMayDelete(freeNode, size);
 
-        return data;
-
-
-
-
+        return 0;
     }
 
     public void free(int address) {
-
-        try {
-            int index = usedList.indexOf(address);
-            int lastNode = usedList.get(index+1);
-
-            for (int i =address;i<lastNode;i++){
-                freeList.insert(address++);
-            }
-            usedList.deleteNode(index);
-            freeList.sortList();
-        }
-        catch(NullPointerException e) {
-            int index = usedList.size()-1;
-
-
-            for (int i =address;i<=lastNode;i++){
-                freeList.insert(address++);
-            }
-            usedList.deleteNode(index);
-            freeList.sortList();
-        }
-
-
+        // call deleteNode(address) on usedList
+    	MyLinkedList.Node deleted = usedList.deleteNode(address);
+        
+        // then call insertMayCompact on freelist
+        freeList.insertMayCompact(deleted.offset, deleted.size);
     }
 
 
     public int size() {
-
-
         return freeList.size();
     }
 
 
     public int max_size() {
-        int count = 1;
-        int maxCount = 0;
-        for(int i =0;i<freeList.size()-1;i++){
-            if(freeList.get(i)+1 == freeList.get(i+1)){
-                count++;
-                if (count>maxCount) {
-                    maxCount = count;
-                }
-            }
-            else{
-                count = 1;
-            }
-        }
-        return maxCount;
+        return memSize - 1;
     }
 
 }
+
+
+// Sort-by in Java: (needs a class)
+// You may need it to sort your list or you can maintain a sorted list upon insertion
