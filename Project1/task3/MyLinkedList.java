@@ -36,7 +36,10 @@ public class MyLinkedList implements Iterable { //generic types are not required
         }
 
         while (temp != null) {
-            if(temp.next.offset > offset) {
+            if (temp.next == null) {
+                temp.next = newNode;
+                return;
+            } else if (temp.next.offset > offset) {
                 newNode.next = temp.next;
                 temp.next = newNode;
                 return;
@@ -48,9 +51,9 @@ public class MyLinkedList implements Iterable { //generic types are not required
     public String toString() {
         String result = "";
         Node current = head;
-        while(current.next != null) {
+        while(current != null) {
             result += current.offset + "-" + current.size;
-            if(current.next != null){
+            if(current != null){
                 result += ", ";
             }
             current = current.next;
@@ -59,26 +62,36 @@ public class MyLinkedList implements Iterable { //generic types are not required
     }
 
     public void splitMayDelete(Node toSplit, int size) {
+        // First remove the node in this list.
+        // Then insert a new node that is size = node.size - size
         Node deleted = this.deleteNode(toSplit.offset);
+        System.out.println("Deleting node: " + deleted.offset + " " + deleted.size);
         deleted.size -= size;
         deleted.offset += size;
+        System.out.println("New deleted node: " + deleted.offset + " " + deleted.size);
         if (deleted.size > 0) {
             this.insert(deleted.offset, deleted.size);
         }
     }
 
     public void insertMayCompact(int offset, int size) {
+        this.insert(offset, size);
+        mergeAdjacent();
+    }
+    public void mergeAdjacent() {
+        boolean merged = false;
         Node temp = head;
-        int offsetCausingCompact = offset + size;
-        while (temp != null) {
-            if (temp.offset == offsetCausingCompact) {
-                temp.offset -= size;
-                assert (temp.offset == offset);
-                return;
+        while (temp!=null) {
+            if (temp.next != null && temp.next.offset == temp.offset + temp.size) {
+                temp.size += temp.next.size;
+                temp.next = temp.next.next;
+                merged = true;
             }
             temp = temp.next;
         }
-        this.insert(offset, size);
+        if (merged) {
+            mergeAdjacent();
+        }
     }
 
     public Node deleteNode(int offset)
@@ -102,7 +115,11 @@ public class MyLinkedList implements Iterable { //generic types are not required
         }
 
         while(temp!=null) {
-            if (temp.next.offset == offset) {
+            if (temp.next == null) {
+                System.err.println("Invalid deleteNode did not find node with offset: "+offset);
+                return null;
+            }
+            else if (temp.next.offset == offset) {
                 Node deletedNode = temp.next;
                 temp.next = temp.next.next;
                 return deletedNode;
@@ -110,7 +127,7 @@ public class MyLinkedList implements Iterable { //generic types are not required
             temp = temp.next;
         }
         System.err.println("Invalid deleteNode did not find node with offset: "+offset);
-		return temp;
+        return null;
     }
 
 
