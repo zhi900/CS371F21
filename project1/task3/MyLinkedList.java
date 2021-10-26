@@ -17,6 +17,7 @@ public class MyLinkedList implements Iterable { //generic types are not required
     }
 
     public Node head = null;
+    public int lastAlloced = 0;
 
     public MyLinkedList() {
     }
