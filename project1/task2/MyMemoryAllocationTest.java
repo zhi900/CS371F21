@@ -58,10 +58,13 @@ public class MyMemoryAllocationTest {
 		assert(mal.alloc(2)==7);
 		//freelist [10,1][12,2] usedlist[1,1][2,1][5,2][7,2][9,1][11,1]
 		assert(mal.alloc(3)==0);//failed case ! fragments!
+		//no size found for 3
+		//freelist [10,1][12,2] usedlist[1,1][2,1][5,2][7,2][9,1][11,1]
 	}
 	@Test
 	public void testBFAlloc() {
 		MyMemoryAllocation mal = prepHoles("BF");
+		
 		assert(mal.alloc(1)==10); 
 		//freelist [2,3][7,2][12,2] usedlist[1,1][5,2][9,1][10,1][11,1]
 		assert(mal.alloc(2)==7); 
@@ -74,16 +77,18 @@ public class MyMemoryAllocationTest {
 	@Test
 	public void testNFAlloc() {
 		MyMemoryAllocation mal = prepHoles("NF");
+		
 		assert(mal.alloc(1)==2);
-		//freelist [7,2][10,1][12,2] usedlist[1,1][2,3][5,2][9,1][11,1]
+		//freelist [3,2][7,2][10,1][12,2] usedlist[1,1][2,1][5,2][9,1][11,1]
 		assert(mal.alloc(2)==7);
-		//freelist [10,1][12,2] usedlist[1,1][2,3][5,2][7,2][9,1][11,1]
+		//freelist [3,2][10,1][12,2] usedlist[1,1][2,1][5,2][7,2][9,1][11,1]
 		assert(mal.alloc(2)==12);
-		//freelist [10,1] usedlist[1,1][2,3][5,2][7,2][9,1][11,1][12,2]
+		//freelist [3,2][10,1] usedlist[1,1][2,1][5,2][7,2][9,1][11,1][12,2]
 		assert(mal.alloc(3)==0); //also failed case ! fragments!
-		//freelist [10,1] usedlist[1,1][2,3][5,2][7,2][9,1][11,1][12,2]
+		//no block found for size 3
+		//freelist [3,2][10,1] usedlist[1,1][2,1][5,2][7,2][9,1][11,1][12,2]
 		assert(mal.alloc(1)==3); //wrap around
-		//freelist [10,1] usedlist[1,1][2,3][5,2][7,2][9,1][11,1][12,2]
+		//freelist [4,1][10,1] usedlist[1,1][2,1][3,1][5,2][7,2][9,1][11,1][12,2]
 	}
 
 	@Before
@@ -95,12 +100,13 @@ public class MyMemoryAllocationTest {
 	@Test
 	public void testFree1() {
 		MyMemoryAllocation mal = prepHoles("FF");
+		
 		mal.free(2);//check if there is an error message
 		//2 is already free
 		assert(errContent.toString().length() != 0);
-		mal.free(1); //freelist [1,1][2,3][7,2][10,1][12,2] usedlist[5,2][9,1][11,1]
+		mal.free(1); //freelist [1,4][7,2][10,1][12,2] usedlist[5,2][9,1][11,1]
 		assert(mal.alloc(4)==1);
-		//freelist [7,2][10,1][12,2] usedlist[1,1][2,3][5,2][9,1][11,1]
+		//freelist [7,2][10,1][12,2] usedlist[1,4][5,2][9,1][11,1]
 	}
 	@After
 	public void restoreStreams() {
@@ -109,11 +115,12 @@ public class MyMemoryAllocationTest {
 	}
 	@Test
 	public void testFree2() {
+		
 		MyMemoryAllocation mal = prepHoles("FF");
 		mal.free(9); 
-		//freelist [1,1][2,3][7,2][9,1][10,1][12,2] usedlist[5,2][11,1]
+		//freelist [2,3][7,3][10,1][12,2] usedlist[1,1][5,2][11,1]
 		mal.free(5);
-		//freelist [1,1][2,3][5,2][7,2][9,1][10,1][12,2] usedlist[11,1]
+		//freelist [2,9][12,2] usedlist[1,1][5,2][11,1]
 		assert(mal.max_size() == 9);
 	}
 	
