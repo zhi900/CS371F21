@@ -31,6 +31,7 @@ public class VirtMemoryTest {
         byte x = m.read(0xFFFFFF);
         MatcherAssert.assertThat(0, not(errContent.toString().length()));
         //Code review q1: what is the max legit address for m.write()??
+        //ANS: The max legit address for m.write() is 
         m.shutdown();
     }
     @After
@@ -64,8 +65,10 @@ public class VirtMemoryTest {
         int readCount = m.getPhyMemory().readCountDisk();
         assertEquals(1, writeCount);
         //Code review q2: why is there only 1 disk write?
+        //ANS: Because the for loop writes 32 times and triggers 1 write back to disk. 
         assertEquals(1, readCount);
         //Code review q3: why is there only 1 disk read?
+        //ANS: Because there's only 1 write back to disk. 
     }
     @Test
     public void test4_WriteBackToMultiBlocks() {
@@ -81,6 +84,7 @@ public class VirtMemoryTest {
         int readCount = m.getPhyMemory().readCountDisk();
         assertEquals(32, writeCount);
         //Code review q4: why are there 32 disk writes?
+        //ANS: Because the for loop will trriger 1 write to at i = 0 and after i=1 to i=31 the 
         assertEquals(32, readCount);
         //Code review q5: why are there 32 disk read?
     }
@@ -106,9 +110,10 @@ public class VirtMemoryTest {
         m.shutdown();
         assertEquals(2048, m.getPhyMemory().writeCountDisk());
         //Code review q6: why are there 2048 disk writes?
+        //ANS: Because TEST_Size is 65,536, divide that by 32 = 2048.
         assertEquals(2048, m.getPhyMemory().readCountDisk());
         //Code review q7: why are there 2048 disk reads?
-
+        //ANS: Because there are 2048 disk writes total.
     }
     @Test
     public void test6_End2EndBackward() {
@@ -124,8 +129,10 @@ public class VirtMemoryTest {
         m.shutdown();
         assertEquals(2048, m.getPhyMemory().writeCountDisk());
         //Code review q8: why are there 2048 disk writes?
+        //ANS: Because TEST_Size is 65,536, divide that by 32 = 2048.
         assertEquals(1792, m.getPhyMemory().readCountDisk());
         //Code review q9: why are there 1792 disk reads? Why is it different from test5?
+        //ANS: Because the 2nd for loop is iterating backwards
 
     }
     @Test
