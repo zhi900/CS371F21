@@ -68,7 +68,8 @@ public class VirtMemoryTest {
         //ANS: Because the for loop writes 32 times and triggers 1 write back to disk. 
         assertEquals(1, readCount);
         //Code review q3: why is there only 1 disk read?
-        //ANS: Because there's only 1 write back to disk. 
+        //ANS: Because max size for m.write(0x8000) is 32 bytes, 
+        //each loop will write 1 byte 32 writes will fit the max of m.write thus only 1 write to disk is needed
     }
     @Test
     public void test4_WriteBackToMultiBlocks() {
@@ -84,9 +85,14 @@ public class VirtMemoryTest {
         int readCount = m.getPhyMemory().readCountDisk();
         assertEquals(32, writeCount);
         //Code review q4: why are there 32 disk writes?
-        //ANS: Because the for loop will trriger 1 write to at i = 0 and after i=1 to i=31 the 
+        //ANS: Because its 32 times because it is being offset by 64bytes - 1
+        //thus leaving only 1 byte for write
+        //it loops 32 times
+        //therefore write will be done 32 times 
         assertEquals(32, readCount);
         //Code review q5: why are there 32 disk read?
+        //ANS: Since read can only take place after a write method and since the write takes place with an i counter of 32 times 
+        //then the read automatically is done 32 time which is reflected upon readCount
     }
     //the following are more realistic workloads
     static final int TEST_SIZE = 64*1024;// 64K, test on max address space!
@@ -132,7 +138,7 @@ public class VirtMemoryTest {
         //ANS: Because TEST_Size is 65,536, divide that by 32 = 2048.
         assertEquals(1792, m.getPhyMemory().readCountDisk());
         //Code review q9: why are there 1792 disk reads? Why is it different from test5?
-        //ANS: Because the 2nd for loop is iterating backwards
+        //ANS: Because the 2nd for loop is iterating backwards and its not reading 8 blocks or 8,192(8x1024) when it doesn't equals to fce(i) and its reading 56 blocks or 57,344(8x1024).
 
     }
     @Test
