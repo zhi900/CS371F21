@@ -31,7 +31,7 @@ public class VirtMemoryTest {
         byte x = m.read(0xFFFFFF);
         MatcherAssert.assertThat(0, not(errContent.toString().length()));
         //Code review q1: what is the max legit address for m.write()??
-        //ANS: The max legit address for m.write() is 
+        //ANS: The max legit address for m.write() is 64 bytes.
         m.shutdown();
     }
     @After
