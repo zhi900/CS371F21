@@ -1,136 +1,81 @@
 package vm;
 
 import java.util.LinkedList;
-import java.util.Objects;
-
-import static java.util.Objects.hash;
 
 public class MyPageTable {
-    private static int INITIAL_SIZE = 64*1024;
-    private PageTableEntry[] table;
-    private int count =0;
-    private int diskCount = 0;
+	public static class PageTableEntry {
+		public int vpn;
+		public int pfn;
+		public int writesCount = 0;
+		public boolean dirty = false;
+	}
+	
+	private static int INITIAL_SIZE = 1024;
+	private LinkedList<PageTableEntry>[] buckets = new LinkedList[INITIAL_SIZE];
+	public MyPageTable() {
+		
+	}
 
-    public MyPageTable(){
-        table = new PageTableEntry[INITIAL_SIZE];
-    }
+	
+	public static int hash(int address) {
+		return address;
+	}
 
+	
 
-    private static class PageTableEntry {
-        int vpn;
-        int pfn;
-        boolean dirty;
-        PageTableEntry next;
-    }
-
-    public void put(int vpn, int pfn) {
-
-        int bucket = hash(vpn);
-        PageTableEntry list = table[bucket];
-
-        while (list != null) {
-
-            if (list.vpn  == vpn)
-                break;
-            list = list.next;
+	boolean contains(int address) {
+		int entryIndex = convertToIndex(address);
+		for (PageTableEntry entry : getBucket(entryIndex)) {
+            if (entry.vpn == address) {
+            	return true;
+            }
         }
-
-        if (list != null) {
-
-            list.pfn = pfn;
+		return false;
+	}
+	
+	void remove(int address) {
+		int entryIndex = convertToIndex(address);
+		getBucket(entryIndex).removeIf(e -> (e.vpn == address));
+	}
+	
+	PageTableEntry put(int address) {
+		int entryIndex = convertToIndex(address);
+		PageTableEntry entry = new PageTableEntry();
+		entry.vpn = getVpn(address);
+		entry.pfn = 0;
+		entry.dirty = false;
+		getBucket(entryIndex).add(entry);
+		return entry;
+	}
+	
+	PageTableEntry get(int address) throws NoPFNException {
+		int entryIndex = convertToIndex(address);
+		int vpn = getVpn(address);
+		for (PageTableEntry entry : getBucket(entryIndex)) {
+            if (entry.vpn == vpn) {
+            	return entry;
+            }
         }
-        else {
-
-
-            PageTableEntry newNode = new PageTableEntry();
-            newNode.vpn = vpn;
-            newNode.pfn = pfn;
-            newNode.next = table[bucket];
-            table[bucket] = newNode;
-            count++;
-        }
-    }
-
-    public int getV(int vpn) {
-
-        int bucket = hash(vpn);
-        PageTableEntry list = table[bucket];
-        while (list != null) {
-
-            if (list.vpn == vpn)
-                return list.vpn;
-            list = list.next;
-        }
-
-        return 0;
-    }
-    public int getP(int vpn) {
-
-        int bucket = hash(vpn);
-        PageTableEntry list = table[bucket];
-        while (list != null) {
-
-            if (list.vpn == vpn)
-                return list.pfn;
-            list = list.next;
-        }
-
-        return 0;
-    }
-    public void remove(int vpn) {
-
-        int bucket = hash(vpn);
-        if (table[bucket] == null) {
-
-            return;
-        }
-        if (table[bucket].vpn == vpn) {
-
-
-            table[bucket] = table[bucket].next;
-            count--;
-            return;
-        }
-
-        PageTableEntry prev = table[bucket];
-
-        PageTableEntry curr = prev.next;
-
-        while (curr != null && !(curr.vpn == vpn)) {
-            curr = curr.next;
-            prev = curr;
-        }
-
-        if (curr != null) {
-            prev.next = curr.next;
-            count--;
-        }
-    }
-    public boolean containsKey(int vpn) {
-
-        int bucket = hash(vpn);
-        PageTableEntry list = table[bucket];
-        while (list != null) {
-
-            if (list.vpn == vpn)
-                return true;
-            list = list.next;
-        }
-
-        return false;
-    }
-    public int size() {
-
-        return count;
-    }
-
-
-    private int hash(int vpn) {
-
-        return (Math.abs(vpn)) % table.length;
-    }
-
-
-
+		throw new NoPFNException();
+	}
+	
+	LinkedList<PageTableEntry> getBucket(int index) { 
+		if (buckets[index] == null) {
+			buckets[index] = new LinkedList();
+		}
+		return buckets[index];
+	}
+	
+	public static int getVpn(int address) {
+		return address >>> 6;
+	}
+	
+	public static int pfnToAddress(int pfn) {
+		return pfn << 6;
+	}
+	
+	int convertToIndex(int address) {
+		int truncated = getVpn(address);
+		return hash(truncated) % INITIAL_SIZE;
+	}
 }
-
