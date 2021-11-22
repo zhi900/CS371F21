@@ -90,7 +90,7 @@ public class VirtMemory extends Memory{
 	@Override
 	protected void sync_to_disk() {
 		// TODO Auto-generated method stub
-	         policy.sync_to_disk()
+	         policy.sync_to_disk();
 	}
 
 	public static int getFullPhyicalAddress(int pfn, int logicalAddress) {
