@@ -11,15 +11,17 @@ public class VirtMemory extends Memory{
     private final int FRAME_SIZE = 64;
     private MyPageTable pageTable;
     private Policy policy;
-
+    
     public VirtMemory() {
         super(new PhyMemory());
         size = 64 * 1024;
         pages = size / FRAME_SIZE;
         pageTable = new MyPageTable();
         policy = new Policy(ram.num_frames(), ram);
-        // TODO Auto-generated constructor stub
+       
     }
+
+   
 
 
     public VirtMemory(PhyMemory ram) {
@@ -29,7 +31,7 @@ public class VirtMemory extends Memory{
         pageTable = new MyPageTable();
     }
 
-  
+
     private boolean isValidAddress(int addr) {
         try {
             if (addr >= size || addr < 0) {
@@ -53,8 +55,8 @@ public class VirtMemory extends Memory{
         entry.dirty = true;
         entry.writesCount += 1;
         if (entry.writesCount % 32 == 0) {
-            ram.store(entry.vpn, MyPageTable.pfnToAddress(entry.pfn));
 
+            sync_to_disk();
             entry.dirty = false;
 
         }
@@ -67,10 +69,12 @@ public class VirtMemory extends Memory{
             entry = pageTable.get(addr);
             if (entry.pfn == -1) {
                 policy.setPfn(entry);
+
             }
         } catch (NoPFNException e) {
             entry = pageTable.put(addr);
             policy.setPfn(entry);
+
         }
         return entry;
     }
@@ -83,13 +87,13 @@ public class VirtMemory extends Memory{
         // Get the physical page table entry...
         MyPageTable.PageTableEntry entry = loadEntry(addr);
 
-
+        sync_to_disk();
         return ram.read(getFullPhyicalAddress(entry.pfn, addr));
     }
 
     @Override
     protected void sync_to_disk() {
-        // TODO Auto-generated method stub
+        
         policy.sync_to_disk();
     }
 
