@@ -4,10 +4,10 @@ import java.util.LinkedList;
 
 public class MyPageTable {
     public static class PageTableEntry {
-        public int vpn;
-        public int pfn;
-        public int writesCount = 0;
-        public boolean dirty = false;
+        protected int vpn;
+       protected int pfn;
+        protected int writesCount = 0;
+       protected boolean dirty = false;
     }
 
     private static int INITIAL_SIZE = 64*1024;
