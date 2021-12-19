@@ -14,22 +14,22 @@ public class PartitionTable<T> {
 	// only fetches from partition_i, but mapper_i can drop messages
 	// into different partitions.
 	Hashtable<Object, BoundedBuffer<T>> buffers = new Hashtable<Object, BoundedBuffer<T>>();
-    public PartitionTable() {
-    	
+	int capacityPerBuffer;
+    public PartitionTable(int capacityPerBuffer) {
+    	this.capacityPerBuffer = capacityPerBuffer;
     }
     
     public T fetchNext(Object key) {
     	if(!buffers.containsKey(key)) {
-    		buffers.put(key, new BoundedBuffer<T>());
+    		buffers.put(key, new BoundedBuffer<T>(capacityPerBuffer));
     	}
     	return buffers.get(key).fetch();
     }
     public void add(Object key, T value) {
     	if(!buffers.containsKey(key)) {
-    		buffers.put(key, new BoundedBuffer<T>());
+    		buffers.put(key, new BoundedBuffer<T>(capacityPerBuffer));
     	}
     	buffers.get(key).deposit(value);
     }
 
 }
-
