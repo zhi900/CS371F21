@@ -11,13 +11,13 @@ public class MyMapReduce extends MapReduce {
 	//What is in a running instance of MapReduce?
 	public void MREmit(Object key, Object value)
 	{
-		long reducerBatch = mapperReducerObj.Partitioner(key, num_reducers);
-		partTable.add(reducerBatch, key, value);
+		//long reducerBatch = mapperReducerObj.Partitioner(key, num_reducers);
+		partTable.add(key, value);
 	}
 
 	public Object MRGetNext(Object key, int partition_number) {
 		//TODO: your code here. Delete UnsupportedOperationException after your implementation is done.
-		return partTable.fetchNext(partition_number, key);
+		return partTable.fetchNext(key);
 	}
 	@Override
 	protected void MRRunHelper(String inputFileName,
@@ -28,7 +28,7 @@ public class MyMapReduce extends MapReduce {
 		//TODO: your code here. Delete UnsupportedOperationException after your implementation is done.
 		store = new ConcurrentKVStore();
 		this.num_reducers = num_reducers;
-		partTable = new PartitionTable<Object>(num_reducers);
+		partTable = new PartitionTable<Object>();
 		this.mapperReducerObj = mapperReducerObj;
 	}
 }
