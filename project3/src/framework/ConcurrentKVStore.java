@@ -32,8 +32,5 @@ public class ConcurrentKVStore {
 		Object ret = buffer.get(key);
 		//mutex.unlock();
 		return ret;
-	}
-
-	
+	}	
 }
-
