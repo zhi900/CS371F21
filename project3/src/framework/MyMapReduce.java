@@ -28,7 +28,7 @@ public class MyMapReduce extends MapReduce {
 		//TODO: your code here. Delete UnsupportedOperationException after your implementation is done.
 		store = new ConcurrentKVStore();
 		this.num_reducers = num_reducers;
-		partTable = new PartitionTable<Object>();
+		partTable = new PartitionTable<Object>(50);
 		this.mapperReducerObj = mapperReducerObj;
 	}
 }
