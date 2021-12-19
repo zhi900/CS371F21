@@ -1,6 +1,7 @@
 package framework;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import utils.BoundedBuffer;
 
@@ -12,19 +13,22 @@ public class PartitionTable<T> {
 	// (2) if reducer_i wants to fetch a KV pair it can
 	// only fetches from partition_i, but mapper_i can drop messages
 	// into different partitions.
-	ArrayList<BoundedBuffer<T>> buffers = new ArrayList<BoundedBuffer<T>>();
-    public PartitionTable(int numReducers) {
-    	for (int i = 0; i < numReducers; i++) {
-    		buffers.add(new BoundedBuffer<T>());	
-    	}
+	Hashtable<Object, BoundedBuffer<T>> buffers = new Hashtable<Object, BoundedBuffer<T>>();
+    public PartitionTable() {
     	
     }
     
-    public T fetchNext(long partition, Object key) {
-    	return buffers.get((int)partition).Fetch(key);
+    public T fetchNext(Object key) {
+    	if(!buffers.containsKey(key)) {
+    		buffers.put(key, new BoundedBuffer<T>());
+    	}
+    	return buffers.get(key).fetch();
     }
-    public void add(long partition, Object key, T value) {
-    	buffers.get((int)partition).Deposit(key, value);
+    public void add(Object key, T value) {
+    	if(!buffers.containsKey(key)) {
+    		buffers.put(key, new BoundedBuffer<T>());
+    	}
+    	buffers.get(key).deposit(value);
     }
 
 }
