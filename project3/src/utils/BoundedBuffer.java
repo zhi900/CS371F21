@@ -1,4 +1,5 @@
 package utils;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -10,22 +11,20 @@ public class BoundedBuffer <T> {
 //Please note the biggest difference between this BoundBuffer
 //and the one we demoed in class is <T>
 //implement member functions: deposit() and fetch()
-	Hashtable<Object, LinkedList<T>> buffer = new Hashtable<Object, LinkedList<T>>();
-	
+	//Hashtable<Object, LinkedList<T>> buffer = new Hashtable<Object, LinkedList<T>>();
+	ArrayList<T> buffer = new ArrayList<T>();
 	private Lock mutex = new ReentrantLock(true);
 	
-	public void Deposit(Object key, T toAdd) {
+	public void deposit(T toAdd) {
 			mutex.lock();
-			if (!buffer.contains(toAdd)) {
-				buffer.put(key, new LinkedList<T>());
-			}
-				buffer.get(key).add(toAdd);
+			buffer.add(toAdd);
 			mutex.unlock();
 	}
 	
-	public T Fetch(Object key) {
+	public T fetch() {
 		mutex.lock();
-		T ret = buffer.get(key).pop();
+		T ret = buffer.get(0);
+		buffer.remove(0);
 		mutex.unlock();
 		return ret;
 	}
