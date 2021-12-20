@@ -39,6 +39,10 @@ public class BoundedBuffer <T> {
 			mutex.unlock();
 	}
 	
+	public boolean isEmpty() {
+		return buffer.size() == 0;
+	}
+	
 	public T fetch() {
 		mutex.lock();
 		while(buffer.size() == 0) {
