@@ -2,6 +2,8 @@ package framework;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import utils.BoundedBuffer;
 
@@ -14,6 +16,9 @@ public class PartitionTable<T> {
 	// only fetches from partition_i, but mapper_i can drop messages
 	// into different partitions.
 	Hashtable<Object, BoundedBuffer<T>> buffers = new Hashtable<Object, BoundedBuffer<T>>();
+
+	private Lock mutex = new ReentrantLock(false);
+	
 	int capacityPerBuffer;
 	
     public PartitionTable(int capacityPerBuffer) {
@@ -29,12 +34,18 @@ public class PartitionTable<T> {
     	}
     	return buffers.get(key).fetch();
     }
+    
     public void add(Object key, T value) {
     	if(!buffers.containsKey(key)) {
-    		buffers.put(key, new BoundedBuffer<T>(capacityPerBuffer));
+    		mutex.lock();
+    		if(!buffers.containsKey(key)) {
+    			buffers.put(key, new BoundedBuffer<T>(capacityPerBuffer));
+    		}
+    		mutex.unlock();
     	}
     	buffers.get(key).deposit(value);
     }
+    
     public ArrayList<ArrayList<Object>> GetKeysInBatches(int numReducers, MapperReducerClientAPI api) {
     	ArrayList<ArrayList<Object>> ret = new ArrayList<ArrayList<Object>>();
     	for (int i = 0; i < numReducers; i++) {
