@@ -12,7 +12,7 @@ public class BoundedBuffer <T> {
 //and the one we demoed in class is <T>
 //implement member functions: deposit() and fetch()
 	//Hashtable<Object, LinkedList<T>> buffer = new Hashtable<Object, LinkedList<T>>();
-	ArrayList<T> buffer = new ArrayList<T>();
+	LinkedList<T> buffer = new LinkedList<T>();
 	private Lock mutex = new ReentrantLock(false);
 	int capacity = 0;
 	int fetchCounter = 0;
@@ -26,7 +26,11 @@ public class BoundedBuffer <T> {
 	
 	public void deposit(T toAdd) {
 			mutex.lock();
-			while (buffer.size() >= capacity) {
+			// Since partition table makes a bounded buffer per key
+			// this can have a "no capacity" mode if capacity is 0
+			// since concurrektKV will need LinkedList at least this big per key anyway should be okay
+			while (capacity > 0 && buffer.size() >= capacity) {
+				System.out.println("Full capacity " + capacity);
 				try {
 					isFull.await();
 				} catch (InterruptedException e) {
@@ -53,8 +57,7 @@ public class BoundedBuffer <T> {
 				e.printStackTrace();
 			}
 		}
-		T ret = buffer.get(0);
-		buffer.remove(0);
+		T ret = buffer.remove();
 		isFull.signal();
 		mutex.unlock();
 		return ret;
