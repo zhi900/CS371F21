@@ -20,6 +20,7 @@ public class MyMapReduce extends MapReduce {
 			mapperReducerObj.Map(subFileName);
 	    }
 	}
+	
 	class ReduceThread extends Thread
 	{
 		ArrayList<Object> keys;
@@ -37,7 +38,6 @@ public class MyMapReduce extends MapReduce {
 	    }
 	}
 	
-	ConcurrentKVStore store;
     PartitionTable<Object> partTable;
     MapperReducerClientAPI mapperReducerObj;
     int num_reducers;
@@ -45,15 +45,14 @@ public class MyMapReduce extends MapReduce {
 	//What is in a running instance of MapReduce?
 	public void MREmit(Object key, Object value)
 	{
-		//long reducerBatch = mapperReducerObj.Partitioner(key, num_reducers);
+		//System.out.println("Emit: " + key + " " + value);
 		partTable.add(key, value);
 	}
 
 	public Object MRGetNext(Object key, int partition_number) {
-		//TODO: your code here. Delete UnsupportedOperationException after your implementation is done.
+		//System.out.println("Fetch: " + key + " " + partition_number);
 		return partTable.fetchNext(key);
 	}
-	
 	
 	
 	@Override
@@ -63,9 +62,10 @@ public class MyMapReduce extends MapReduce {
 		    		  int num_reducers)
 	{
 		//TODO: your code here. Delete UnsupportedOperationException after your implementation is done.
-		store = new ConcurrentKVStore();
+		//store = new ConcurrentKVStore();
 		this.num_reducers = num_reducers;
-		partTable = new PartitionTable<Object>(50);
+		// This will make bounded buffer infinity size which is okay because we make one BoundedBuffer per key.
+		partTable = new PartitionTable<Object>(0);
 		this.mapperReducerObj = mapperReducerObj;
 		ArrayList<Thread> threads = new ArrayList<Thread>();
 		for (int i = 0; i < num_mappers; i++) {
@@ -82,12 +82,14 @@ public class MyMapReduce extends MapReduce {
 			}
 		}
 		threads.clear();
+		
 		ArrayList<ArrayList<Object>> keysInBatches = partTable.GetKeysInBatches(num_reducers, mapperReducerObj);
 		for (int i = 0; i < num_mappers; i++) {
 			Thread reduceThread = new ReduceThread(i, keysInBatches.get(i));
 			threads.add(reduceThread);
 			reduceThread.start();
 		}
+		
 		for(Thread t : threads) {
 			try {
 				t.join();
