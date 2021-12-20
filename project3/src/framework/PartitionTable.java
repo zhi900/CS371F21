@@ -15,6 +15,7 @@ public class PartitionTable<T> {
 	// into different partitions.
 	Hashtable<Object, BoundedBuffer<T>> buffers = new Hashtable<Object, BoundedBuffer<T>>();
 	int capacityPerBuffer;
+	
     public PartitionTable(int capacityPerBuffer) {
     	this.capacityPerBuffer = capacityPerBuffer;
     }
@@ -22,6 +23,9 @@ public class PartitionTable<T> {
     public T fetchNext(Object key) {
     	if(!buffers.containsKey(key)) {
     		buffers.put(key, new BoundedBuffer<T>(capacityPerBuffer));
+    	}
+    	if (buffers.get(key).isEmpty()) {
+    		return null;
     	}
     	return buffers.get(key).fetch();
     }
@@ -31,5 +35,15 @@ public class PartitionTable<T> {
     	}
     	buffers.get(key).deposit(value);
     }
-
+    public ArrayList<ArrayList<Object>> GetKeysInBatches(int numReducers, MapperReducerClientAPI api) {
+    	ArrayList<ArrayList<Object>> ret = new ArrayList<ArrayList<Object>>();
+    	for (int i = 0; i < numReducers; i++) {
+    		ret.add(new ArrayList<Object>());
+    	}
+    	for (Object key : buffers.keySet()) {
+    		int partition = (int)api.Partitioner(key, numReducers);
+    		ret.get(partition).add(key);
+    	}
+    	return ret;
+    }
 }
