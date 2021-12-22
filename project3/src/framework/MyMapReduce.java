@@ -21,6 +21,24 @@ public class MyMapReduce extends MapReduce {
 	    }
 	}
 	
+	class ReduceToStoreThread extends Thread
+	{
+		int partitionIndex;
+		public boolean turnOff;
+		public ReduceToStoreThread(int partitionIndex) {
+			this.partitionIndex = partitionIndex;
+		}
+	    @Override
+	    public void run()
+	    {
+	    	boolean toReduce = true;
+	    	while(!turnOff || toReduce) {
+	    		toReduce = partTable.processToStore(partitionIndex);
+	    		//System.out.println("Turn off " + turnOff + " index " + toReduce);
+	    	}
+	    }
+	}
+	
 	class ReduceThread extends Thread
 	{
 		ArrayList<Object> keys;
@@ -65,14 +83,23 @@ public class MyMapReduce extends MapReduce {
 		//store = new ConcurrentKVStore();
 		this.num_reducers = num_reducers;
 		// This will make bounded buffer infinity size which is okay because we make one BoundedBuffer per key.
-		partTable = new PartitionTable<Object>(0);
+		partTable = new PartitionTable<Object>(num_reducers, mapperReducerObj);
 		this.mapperReducerObj = mapperReducerObj;
 		ArrayList<Thread> threads = new ArrayList<Thread>();
+		ArrayList<ReduceToStoreThread> processThreads = new ArrayList<ReduceToStoreThread>();
 		for (int i = 0; i < num_mappers; i++) {
 			Thread mapThread = new MapThread(i, inputFileName);
 			threads.add(mapThread);
 			mapThread.start();
 		}
+		
+		for (int i = 0; i < num_reducers; i++) {
+			ReduceToStoreThread reduceThread = new ReduceToStoreThread(i);
+			processThreads.add(reduceThread);
+			reduceThread.start();
+		}
+		
+		System.out.println("Waiting on maps");
 		for(Thread t : threads) {
 			try {
 				t.join();
@@ -81,7 +108,23 @@ public class MyMapReduce extends MapReduce {
 				e.printStackTrace();
 			}
 		}
+		
+		for(ReduceToStoreThread t : processThreads) {
+			t.turnOff = true;
+		}
+		System.out.println("Waitng for process threads");
+		for(ReduceToStoreThread t : processThreads) {
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+
 		threads.clear();
+		processThreads.clear();
 		
 		ArrayList<ArrayList<Object>> keysInBatches = partTable.GetKeysInBatches(num_reducers, mapperReducerObj);
 		for (int i = 0; i < num_mappers; i++) {
