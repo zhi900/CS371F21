@@ -21,31 +21,48 @@ import utils.BoundedBuffer;
 // So a separate ConccurentKVStore is not necessary for this implementation.
 // Our trick is make a BoundedBuffer per key. So it locks per key which should work for dictionary!
 
-//public class ConcurrentKVStore {
-//	Hashtable<Object, LinkedList<Object>> buffer = new Hashtable<Object, LinkedList<Object>>();
-//	
-//	
-//	
-//	public void Deposit(Object key, Object toAdd) {
-//			//mutex.lock();
-//			if (!buffer.contains(key)) {
-//				buffer.put(key, new LinkedList<Object>());
-//			}
-//		
-//			buffer.get(key).add(toAdd);
-//			//mutex.unlock();
-//	}
-//	
-//	public Object Fetch(Object key) {
-//		if (!buffer.contains(key)) {
-//			buffer.put(key, new LinkedList<Object>());
-//		}
-//		//mutex.lock();
-//		if (buffer.get(key).size() == 0) {
-//			return null;
-//		}
-//		Object ret = buffer.get(key).remove();
-//		//mutex.unlock();
-//		return ret;
-//	}	
-//}
+public class ConcurrentKVStore<T> {
+	Hashtable<Object, LinkedList<T>> buffers = new Hashtable<Object, LinkedList<T>>();
+	Lock[] locksPerReducer;
+	MapperReducerClientAPI api;
+	
+	public ConcurrentKVStore(int reducerCount, MapperReducerClientAPI api) {
+		locksPerReducer = new Lock[reducerCount];
+		for (int i = 0; i < reducerCount; i++) {
+			locksPerReducer[i] = new ReentrantLock(false);
+		}
+		this.api = api;
+	}
+	
+	public T pop(Object key) {
+		int reducer = (int)api.Partitioner(key, locksPerReducer.length);
+		//System.out.println("Pop " + key + " r: " + reducer);
+		locksPerReducer[reducer].lock();
+		
+		if (!buffers.containsKey(key)) {
+			buffers.put(key, new LinkedList<T>());
+			System.out.println("Key not found");
+			return null;
+		}
+		if (buffers.get(key).size() == 0) {
+			return null;
+		}
+		T ret = buffers.get(key).remove();
+		
+		locksPerReducer[reducer].unlock();
+		return ret;
+	}
+	
+	public void store(Object key, T value) {
+		int reducer = (int)api.Partitioner(key, locksPerReducer.length);
+		//System.out.println("Storing " + key + " " + value + " r: " + reducer + "len " + locksPerReducer.length);
+		locksPerReducer[reducer].lock();
+		if (!buffers.containsKey(key)) {
+			buffers.put(key, new LinkedList<T>());
+			//System.out.println("Key not found " + key + " " + reducer);
+		}
+		buffers.get(key).add(value);
+		//System.out.println("Stored" + buffers.get(key).getLast());
+		locksPerReducer[reducer].unlock();
+	}
+}
