@@ -8,6 +8,16 @@ import java.util.concurrent.locks.ReentrantLock;
 import utils.BoundedBuffer;
 
 public class PartitionTable<T> {
+	public class KeyValue<T> {
+		public Object key;
+		public T value;
+		public KeyValue(Object key, T value) {
+			this.key = key;
+			this.value = value;
+		}
+	}
+	
+	
 	//TODO: your codde here
 	//Notes:
 	// (1) each partition works like a bounded buffer between
@@ -15,35 +25,41 @@ public class PartitionTable<T> {
 	// (2) if reducer_i wants to fetch a KV pair it can
 	// only fetches from partition_i, but mapper_i can drop messages
 	// into different partitions.
-	Hashtable<Object, BoundedBuffer<T>> buffers = new Hashtable<Object, BoundedBuffer<T>>();
-
-	private Lock mutex = new ReentrantLock(false);
+	//Hashtable<Object, BoundedBuffer<T>> buffers = new Hashtable<Object, BoundedBuffer<T>>();
+	BoundedBuffer<KeyValue<T>>[] buffers;
+	ConcurrentKVStore<T> store;
+	MapperReducerClientAPI api;
+	int reducerCount;
+	//private Lock mutex = new ReentrantLock(false);
 	
-	int capacityPerBuffer;
 	
-    public PartitionTable(int capacityPerBuffer) {
-    	this.capacityPerBuffer = capacityPerBuffer;
+	
+    public PartitionTable(int reducerCount, MapperReducerClientAPI api) {
+    	this.api = api;
+    	this.reducerCount = reducerCount;
+    	buffers = new BoundedBuffer[reducerCount];
+    	for (int i = 0; i< reducerCount; i++) {
+    		buffers[i] = new BoundedBuffer<KeyValue<T>>(50);
+    	}
+    	store = new ConcurrentKVStore(reducerCount, api);
+    }
+    
+    public boolean processToStore(int reducerIndex) {
+    	if (buffers[reducerIndex].isEmpty()) {
+    		return false;
+    	}
+    	KeyValue<T> result = buffers[reducerIndex].fetch();
+    	store.store(result.key, result.value);
+    	return true;
     }
     
     public T fetchNext(Object key) {
-    	if(!buffers.containsKey(key)) {
-    		buffers.put(key, new BoundedBuffer<T>(capacityPerBuffer));
-    	}
-    	if (buffers.get(key).isEmpty()) {
-    		return null;
-    	}
-    	return buffers.get(key).fetch();
+    	return store.pop(key);
     }
     
     public void add(Object key, T value) {
-    	if(!buffers.containsKey(key)) {
-    		mutex.lock();
-    		if(!buffers.containsKey(key)) {
-    			buffers.put(key, new BoundedBuffer<T>(capacityPerBuffer));
-    		}
-    		mutex.unlock();
-    	}
-    	buffers.get(key).deposit(value);
+    	int reducerIndex = (int)api.Partitioner(key, reducerCount);
+    	buffers[reducerIndex].deposit(new KeyValue<T>(key, value));
     }
     
     public ArrayList<ArrayList<Object>> GetKeysInBatches(int numReducers, MapperReducerClientAPI api) {
@@ -51,7 +67,7 @@ public class PartitionTable<T> {
     	for (int i = 0; i < numReducers; i++) {
     		ret.add(new ArrayList<Object>());
     	}
-    	for (Object key : buffers.keySet()) {
+    	for (Object key : store.buffers.keySet()) {
     		int partition = (int)api.Partitioner(key, numReducers);
     		ret.get(partition).add(key);
     	}
