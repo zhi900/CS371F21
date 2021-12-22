@@ -30,7 +30,7 @@ public class BoundedBuffer <T> {
 			// this can have a "no capacity" mode if capacity is 0
 			// since concurrektKV will need LinkedList at least this big per key anyway should be okay
 			while (capacity > 0 && buffer.size() >= capacity) {
-				System.out.println("Full capacity " + capacity);
+				//System.out.println("Full capacity " + capacity);
 				try {
 					isFull.await();
 				} catch (InterruptedException e) {
